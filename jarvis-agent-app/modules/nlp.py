@@ -78,6 +78,8 @@ INTENTS = {
     "dictionary": [
         "查单词", "单词", "词典", "dictionary", "definition", "什么意思",
         "word", "define", "词汇", "单词意思", "词汇查询", "查",
+        "解释一下", "explain", "释义", "解释", "meaning", "是什么", "lookup",
+        "look up", "查一下", "phrase", "术语", "term", "短语",
     ],
     "holiday": [
         "节假日", "放假", "假期", "公共假期", "holiday", "放假安排",
@@ -87,12 +89,61 @@ INTENTS = {
     "book": [
         "查书", "书籍", "小说", "book", "search book", "找书", "图书",
         "推荐书", "书名", "作者", "search", "books", "阅读",
+        "推荐一本", "看书", "读书", "literature", "novel", "出版",
+        "book recommendation", "reading", "经典", "畅销书", "书单",
+    ],
+    "search": [
+        "搜索", "查找", "搜索一下", "search", "google", "bing", "百度",
+        "在线搜索", "网上查", "find", "query", "搜一下",
+    ],
+    "calculation": [
+        "计算", "算一下", "计算器的", "calculate", "math", "数学",
+        "等于多少", "结果", "公式", "计算这个", "计算器",
+    ],
+    "translation": [
+        "翻译", "译成", "翻译成", "translate", "翻译一下", "英译中",
+        "中译英", "翻译成中文", "翻译成英文", "翻译这句话",
+    ],
+    "code_help": [
+        "编程", "写代码", "debug", "代码", "程序", "coding", "函数",
+        "bug", "错误", "帮助我编程", "code", "脚本", "开发",
+    ],
+    "email": [
+        "邮件", "邮箱", "发邮件", "email", "写信", "收件人", "主题",
+        "写一封邮件", "发送邮件", "邮件内容",
+    ],
+    "calendar": [
+        "日历", "日程", "预约", "安排", "会议", "calendar", "schedule",
+        "今天有什么安排", "查看日程", "约会", "时间", "日程管理",
+    ],
+    "navigation": [
+        "导航", "路线", "怎么去", "方向", "directions", "map", "地图",
+        "怎么走", "导航到", "当前位置", "距离",
+    ],
+    "music": [
+        "音乐", "歌曲", "播放", "歌", "music", "song", "听歌",
+        "推荐音乐", "播放音乐", "歌曲名", "歌手",
+    ],
+    "news": [
+        "新闻", "最新资讯", "最新消息", "news", "热点", "头条",
+        "今天发生了什么", "新闻联播", "今日要闻", "资讯",
     ],
 }
 
 # Entity patterns
+# Major cities list - extendable by adding more cities
+MAJOR_CITIES = [
+    "北京", "上海", "广州", "深圳", "成都", "杭州", "武汉", "南京", "重庆", "西安",
+    "长沙", "郑州", "青岛", "大连", "厦门", "沈阳", "哈尔滨", "济南", "合肥", "福州",
+    "昆明", "贵阳", "南宁", "兰州", "乌鲁木齐", "海口", "呼和浩特", "拉萨", "天津",
+    "香港", "澳门", "台北",
+    # International cities (English)
+    "New York", "London", "Tokyo", "Paris", "Berlin", "Sydney", "Toronto", "Singapore",
+    "Dubai", "Mumbai", "Los Angeles", "San Francisco", "Seattle", "Boston", "Chicago",
+]
+
 ENTITY_PATTERNS = {
-    "city": re.compile(r"(北京|上海|广州|深圳|成都|杭州|武汉|南京|重庆|西安|长沙|郑州|青岛|大连|厦门|沈阳|哈尔滨|济南|合肥|福州|昆明|贵阳|南宁|兰州|乌鲁木齐|海口|呼和浩特|拉萨|天津|香港|澳门|台北)(市)?"),
+    "city": re.compile(f"({'|'.join(re.escape(c) for c in MAJOR_CITIES)})(市)?"),
     "date": re.compile(r"(\d{4}[-/]\d{1,2}[-/]\d{1,2}|明天|后天|大后天|今天|昨天|\d{1,2}月\d{1,2}日)"),
     "priority": re.compile(r"(high|medium|low|高|中|低|紧急|普通|低优先级)"),
     "number": re.compile(r"(\d+)"),
@@ -102,11 +153,16 @@ ENTITY_PATTERNS = {
     "word": re.compile(r"(?:查|define|definition|look up|查一下)\s*([a-zA-Z]\w+)"),
     "country": re.compile(r"\b(CN|US|JP|GB|KR|HK|DE|FR|IT|ES|CA|AU|BR|IN|RU|SG|TH|MY|VN|PH|ID)\b"),
     "category": re.compile(r"(Programming|Misc|Dark|Pun|Spooky|Christmas|Any)"),
+    "email_addr": re.compile(r"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})"),
+    "url": re.compile(r"(https?://[^\s]+)"),
+    "time": re.compile(r"(\d{1,2}[:点]\d{1,2})"),
+    "date_range": re.compile(r"(\d{4}[-/]\d{1,2}[-/]\d{1,2}\s*至?\s*\d{4}[-/]\d{1,2}[-/]\d{1,2})"),
+    "language": re.compile(r"(中文|英文|英语|日语|法语|德语|西班牙语|韩语|俄语|葡萄牙语|意大利语|chinese|english|japanese|french|german)"),
 }
 
 # Sentiment keywords (Chinese & English)
-POSITIVE_WORDS = ["好", "棒", "优秀", "perfect", "great", "good", "喜欢", "满意", "thanks", "thank", "谢谢"]
-NEGATIVE_WORDS = ["差", "糟糕", "垃圾", "bad", "terrible", "awful", "讨厌", "不满意", "hate", "angry", "生气"]
+POSITIVE_WORDS = ["好", "棒", "优秀", "完美", "perfect", "great", "good", "喜欢", "满意", "thanks", "thank", "谢谢", "厉害", "不错", "excellent", "awesome", "感谢", "太棒了", "非常好", "精妙", "赞"]
+NEGATIVE_WORDS = ["差", "糟糕", "垃圾", "bad", "terrible", "awful", "讨厌", "不满意", "hate", "angry", "生气", "笨", "不行", "stupid", "frustrating", "烦躁", "失望", "bug", "错误", "失败"]
 
 
 class NLPProcessor:
@@ -214,7 +270,7 @@ class NLPProcessor:
     # ----------------------------------------------------------
     # Full Pipeline
     # ----------------------------------------------------------
-    async def process(self, text: str) -> Dict[str, Any]:
+    def process(self, text: str) -> Dict[str, Any]:
         """
         Full NLP pipeline: intent recognition + entity extraction + sentiment analysis.
         """
@@ -254,7 +310,16 @@ class NLPProcessor:
             "dictionary": f"好的，正在查询单词信息...",
             "holiday": f"正在查询公共节假日信息...",
             "book": f"正在搜索书籍信息...",
-            "unknown": f"抱歉，我不太理解你的意思。你可以试试问我天气、查加密货币价格、查询汇率、查字典、查询节假日、搜索书籍、创建任务、或分析数据。",
+            "search": f"正在为您执行全网搜索...",
+            "calculation": f"计算模块已就绪，请提供计算公式或数值。",
+            "translation": f"翻译模块已激活，请提供需要翻译的文本和目标语言。",
+            "code_help": f"编程助手已就绪，请描述您需要实现的代码功能或遇到的错误。",
+            "email": f"邮件模块已就绪，请提供收件人、主题和邮件内容。",
+            "calendar": f"日程管理已激活，请告诉我您的安排计划。",
+            "navigation": f"导航模块已就绪，请提供起点和目的地。",
+            "music": f"音乐推荐已就绪，请告诉我您喜欢的音乐风格或歌曲类型。",
+            "news": f"最新资讯获取中，请稍等...",
+            "unknown": f"抱歉，我不太理解你的意思。您可以试试问我天气、查加密货币价格、查询汇率、查字典、搜索书籍、翻译、计算、编程帮助、查询节假日、创建任务、或分析数据。",
         }
 
         response_text = responses.get(intent, responses["unknown"])

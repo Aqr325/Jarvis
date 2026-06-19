@@ -52,11 +52,24 @@ class TimeoutManager:
                 self._circuit_thresholds[name] = cfg.circuit_breaker_threshold
 
     def _get_config(self, endpoint: str) -> EndpointConfig:
-        """Get config for endpoint, falling back to default."""
-        for pattern, cfg in self.configs.items():
-            if endpoint.startswith(pattern) or pattern == "default":
+        """Get config for endpoint, falling back to default.
+        
+        Priority order (most specific first):
+        1. chat (matches /api/chat)
+        2. tool (matches /api/tool)
+        3. data (matches /api/data)
+        4. weather (matches /api/weather)
+        5. scheduler (matches /api/scheduler)
+        6. memory (matches /api/memory)
+        7. default
+        """
+        # Order matters: more specific patterns should be checked first
+        priority_order = ["chat", "tool", "data", "weather", "scheduler", "memory", "default"]
+        for pattern in priority_order:
+            cfg = self.configs.get(pattern)
+            if cfg and (endpoint.startswith(f"/api/{pattern}") or endpoint.startswith(pattern)):
                 return cfg
-        return self.configs["default"]
+        return self.configs.get("default")
 
     async def execute_with_timeout(
         self, coro, endpoint: str, client_id: str = "unknown"

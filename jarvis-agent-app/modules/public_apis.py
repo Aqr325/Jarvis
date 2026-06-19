@@ -38,7 +38,7 @@ async def _fetch_json(url: str, params: Optional[Dict] = None) -> Optional[Dict]
     """GET a URL and return parsed JSON, or None on failure."""
     session = await _get_session()
     try:
-        async with session.get(url, params=params) as resp:
+        async with session.get(url, params=params, follow_redirects=True) as resp:
             if resp.status == 200:
                 return await resp.json()
             logger.warning("API %s returned %s", url, resp.status)
@@ -123,7 +123,7 @@ async def crypto_list() -> List[Dict[str, Any]]:
 # 2. Frankfurter — Currency exchange rates
 # ══════════════════════════════════════════════════════════════
 
-_BASE_FRANKFURTER = "https://api.frankfurter.dev"
+_BASE_FRANKFURTER = "https://api.frankfurter.app"
 
 
 async def exchange_rate(from_currency: str, to_currency: str, amount: float = 1.0) -> Dict[str, Any]:

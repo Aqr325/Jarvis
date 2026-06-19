@@ -1,0 +1,39 @@
+# Prometheus configuration for J.A.R.V.I.S. Agent monitoring
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'jarvis-agent'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules
+rule_files: []
+
+# Scrape configurations
+scrape_configs:
+  # J.A.R.V.I.S. Agent metrics
+  - job_name: 'jarvis-agent'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['jarvis:8000']
+        labels:
+          service: 'jarvis-agent'
+    
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'redis'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'

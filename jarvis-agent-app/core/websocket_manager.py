@@ -162,15 +162,32 @@ class WebSocketManager:
         )
 
     async def heartbeat_check(self):
-        """Ping all connections and detect stale ones."""
+        """Ping all connections and detect/cleanup stale ones (> 2 min inactive)."""
         now = time.time()
-        for client_id, conn in self.connections.items():
-            if now - conn.last_activity > 60:
-                await conn.send({
-                    "type": self.TYPE_HEARTBEAT,
-                    "payload": {"ping": True},
-                    "timestamp": now,
-                })
+        stale_clients = []
+        
+        for client_id, conn in list(self.connections.items()):
+            idle_seconds = now - conn.last_activity
+            if idle_seconds > 120:  # 2 minutes threshold
+                stale_clients.append(client_id)
+                logger.warning(
+                    f"Closing stale WebSocket connection: {client_id} (idle {idle_seconds:.0f}s)"
+                )
+                await self.disconnect(client_id)
+            elif idle_seconds > 60 and conn.is_active:
+                # Send ping to check if still alive
+                try:
+                    await conn.send({
+                        "type": self.TYPE_HEARTBEAT,
+                        "payload": {"ping": True, "idle_seconds": round(idle_seconds)},
+                        "timestamp": now,
+                    })
+                except Exception as e:
+                    logger.error(f"Heartbeat failed for {client_id}: {e}")
+                    await self.disconnect(client_id)
+        
+        if stale_clients:
+            logger.info(f"Heartbeat check: cleaned up {len(stale_clients)} stale connections")
 
     def get_connection_count(self) -> int:
         """Return number of active connections."""

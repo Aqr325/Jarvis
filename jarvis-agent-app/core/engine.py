@@ -37,6 +37,7 @@ class DecisionStrategy(str, Enum):
     STATE_MACHINE = "state_machine"
     MULTI_STEP = "multi_step"
     RULE_BASED = "rule_based"
+    CUSTOM_LLM = "custom_llm"
     FALLBACK = "fallback"
 
 
@@ -296,6 +297,7 @@ class ReasoningEngine:
         self.rules: List[dict] = []
         self.knowledge_graph: Dict[str, List[str]] = {}
         self._nlp_processor = None
+        self._llm_config = None
         self.state_machine = DecisionStateMachine()
         self.context_window = ContextWindowManager()
         self._reasoning_chain: List[ReasoningStep] = []
@@ -473,6 +475,127 @@ class ReasoningEngine:
             "reasoning_chain": [s.to_dict() for s in self._reasoning_chain],
         }
 
+    def configure_external_llm(self, config: dict):
+        """Configure an external LLM provider dynamically."""
+        try:
+            from modules.custom_llm import LLMConfig, llm_manager
+            llm_cfg = LLMConfig(
+                provider=config.get("provider", "openai"),
+                api_base=config.get("api_base", ""),
+                model_name=config.get("model_name", ""),
+                api_key=config.get("api_key", ""),
+                temperature=float(config.get("temperature", 0.7)),
+                max_tokens=int(config.get("max_tokens", 4096)),
+                timeout=int(config.get("timeout", 60)),
+                extra_params=config.get("extra_params", {}),
+            )
+            llm_manager.configure(llm_cfg)
+            self._llm_config = llm_cfg
+            logger.info("External LLM configured: %s / %s", llm_cfg.provider, llm_cfg.model_name)
+        except ImportError:
+            logger.warning("custom_llm module not available; external LLM skipped.")
+        except Exception as e:
+            logger.error("Failed to configure external LLM: %s", e)
+            raise
+
+    def get_current_llm_status(self) -> dict:
+        """Return the current external LLM status."""
+        try:
+            from modules.custom_llm import llm_manager
+            configured = llm_manager.is_configured() and self._llm_config is not None
+            # A "configured" status requires at least a valid provider and api_base
+            if configured and self._llm_config:
+                if not self._llm_config.api_base and not self._llm_config.model_name:
+                    configured = False
+            return {
+                "configured": configured,
+                "provider": self._llm_config.provider if self._llm_config else None,
+                "model": self._llm_config.model_name if self._llm_config else None,
+                "api_base": self._llm_config.api_base if self._llm_config else None,
+                "api_base_url": self._llm_config.api_base if self._llm_config else None,  # frontend compat
+                "temperature": self._llm_config.temperature if self._llm_config else 0.7,
+                "max_tokens": self._llm_config.max_tokens if self._llm_config else 4096,
+                "timeout_seconds": self._llm_config.timeout if self._llm_config else 60,
+                "status": "connected" if configured else "disconnected",
+            }
+        except Exception:
+            return {"configured": False, "provider": None, "model": None, "api_base": None, "api_base_url": None, "status": "disconnected"}
+
+    async def _custom_llm_route(self, query: str, context: Dict, memory: List[dict]) -> dict:
+        """Route reasoning to the external LLM."""
+        self._add_step("llm_init", "Preparing external LLM request")
+
+        try:
+            from modules.custom_llm import llm_manager
+            if not self._llm_config or not llm_manager.is_configured():
+                self._add_step("llm_error", "LLM not configured")
+                return {
+                    "output": "外部模型尚未配置，请先通过 /api/model/config 端点设置 LLM 连接信息。",
+                    "reasoning": "custom_llm:not_configured",
+                }
+
+            # Guard against empty api_base / model_name (bare LLMConfig with defaults)
+            if not self._llm_config.api_base or not self._llm_config.model_name:
+                self._add_step("llm_error", "LLM api_base or model_name is empty")
+                return {
+                    "output": "外部模型配置不完整（api_base 或 model_name 为空），请提供有效值。",
+                    "reasoning": "custom_llm:incomplete_config",
+                }
+
+            # Build messages with context and memory
+            system_prompt = (
+                "你是 J.A.R.V.I.S.，一位高效、专业的智能助手。请简洁准确地回答用户的问题。"
+            )
+            messages = [
+                {"role": "system", "content": system_prompt},
+            ]
+
+            # Append relevant memory
+            if memory:
+                mem_snippets = [
+                    f"[{m.get('role', '?')}] {str(m.get('content', ''))[:200]}"
+                    for m in memory[-5:]
+                ]
+                if mem_snippets:
+                    messages.append({
+                        "role": "system",
+                        "content": f"相关上下文: {' | '.join(mem_snippets)}",
+                    })
+
+            messages.append({"role": "user", "content": query})
+
+            self._add_step("llm_request", f"Sending query to {self._llm_config.model_name}")
+            response = await llm_manager.chat(messages)
+
+            if not response.success:
+                self._add_step("llm_error", response.error or "Unknown LLM error")
+                return {
+                    "output": f"外部模型请求失败: {response.error}",
+                    "reasoning": f"custom_llm:error ({response.error})",
+                }
+
+            self._add_step(
+                "llm_response",
+                f"Got response ({response.usage.get('completion_tokens', '?')} tokens)",
+                response.content,
+            )
+
+            return {
+                "output": response.content,
+                "reasoning": f"custom_llm:{self._llm_config.provider}/{self._llm_config.model_name}",
+                "llm_usage": response.usage,
+                "model": response.model,
+            }
+
+        except Exception as e:
+            logger.error("Custom LLM route error: %s", e)
+            self._add_step("llm_exception", str(e))
+            return {
+                "output": f"外部模型处理出错: {str(e)}",
+                "reasoning": "custom_llm:exception",
+                "error": str(e),
+            }
+
     async def reason(
         self,
         query: str,
@@ -490,7 +613,10 @@ class ReasoningEngine:
         self.context_window.add_message("user", query)
 
         try:
-            if strategy == DecisionStrategy.NLP_ROUTE and self.nlp:
+            if strategy == DecisionStrategy.CUSTOM_LLM:
+                result = await self._custom_llm_route(query, context, memory)
+
+            elif strategy == DecisionStrategy.NLP_ROUTE and self.nlp:
                 self.state_machine.transition("input_received")
                 result = await self._nlp_route(query, context, memory)
 

@@ -1,0 +1,11 @@
+[run]
+source = core, modules, schemas
+omit =
+    */venv/*
+    */tests/*
+    */site-packages/*
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = True

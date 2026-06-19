@@ -30,7 +30,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; min-height: 100vh; overflow-x: hidden; }
     
-    /* Particle canvas background */
+    /* Enhanced Particle canvas background */
     #particleCanvas {
       position: fixed;
       top: 0;
@@ -39,6 +39,108 @@
       height: 100%;
       z-index: 0;
       pointer-events: none;
+    }
+
+    /* Holographic scan lines overlay */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 212, 255, 0.015) 2px,
+        rgba(0, 212, 255, 0.015) 4px
+      );
+      animation: scanMove 8s linear infinite;
+    }
+    @keyframes scanMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 100px; }
+    }
+
+    /* HUD ring decoration */
+    .hud-ring {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      border: 1px solid rgba(0, 212, 255, 0.04);
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+      animation: hudRotate 60s linear infinite;
+    }
+    .hud-ring::before, .hud-ring::after {
+      content: '';
+      position: absolute;
+      border: 1px solid rgba(0, 212, 255, 0.03);
+      border-radius: 50%;
+    }
+    .hud-ring::before {
+      inset: 30px;
+      animation: hudRotate 40s linear infinite reverse;
+    }
+    .hud-ring::after {
+      inset: 60px;
+      animation: hudRotate 30s linear infinite;
+    }
+    @keyframes hudRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Corner brackets for HUD feel */
+    .corner-bracket {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.25;
+    }
+    .corner-bracket::before, .corner-bracket::after {
+      content: '';
+      position: absolute;
+      background: var(--cyan);
+    }
+    .corner-tl { top: 80px; left: 10px; }
+    .corner-tl::before { top: 0; left: 0; width: 20px; height: 2px; }
+    .corner-tl::after { top: 0; left: 0; width: 2px; height: 20px; }
+    .corner-tr { top: 80px; right: 10px; }
+    .corner-tr::before { top: 0; right: 0; width: 20px; height: 2px; }
+    .corner-tr::after { top: 0; right: 0; width: 2px; height: 20px; }
+    .corner-bl { bottom: 10px; left: 10px; }
+    .corner-bl::before { bottom: 0; left: 0; width: 20px; height: 2px; }
+    .corner-bl::after { bottom: 0; left: 0; width: 2px; height: 20px; }
+    .corner-br-corner { bottom: 10px; right: 10px; }
+    .corner-br-corner::before { bottom: 0; right: 0; width: 20px; height: 2px; }
+    .corner-br-corner::after { bottom: 0; right: 0; width: 2px; height: 20px; }
+
+    /* Energy wave animation */
+    .energy-wave {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      border: 2px solid rgba(0, 212, 255, 0.2);
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+      animation: energyExpand 4s ease-out infinite;
+    }
+    @keyframes energyExpand {
+      0% { width: 100px; height: 100px; opacity: 0.6; }
+      100% { width: 800px; height: 800px; opacity: 0; }
     }
 
     /* Header */
@@ -59,11 +161,22 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: radial-gradient(circle, var(--cyan), var(--blue));
-      box-shadow: 0 0 20px 4px rgba(0, 212, 255, 0.3);
-      animation: pulse 3s ease-in-out infinite;
+      background: radial-gradient(circle at 35% 35%, var(--cyan), var(--blue), #003355);
+      box-shadow: 
+        0 0 20px 4px rgba(0, 212, 255, 0.3),
+        inset 0 0 10px rgba(0, 212, 255, 0.2);
+      animation: pulse 3s ease-in-out infinite, orbFloat 4s ease-in-out infinite;
       position: relative;
       transition: all 0.3s;
+    }
+    .orb-small::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 212, 255, 0.2);
+      animation: spin 6s linear infinite;
+      background: conic-gradient(from 0deg, transparent, rgba(0, 212, 255, 0.1), transparent);
     }
     .orb-small::after {
       content: '';
@@ -71,7 +184,11 @@
       inset: -4px;
       border-radius: 50%;
       border: 1px solid rgba(0, 212, 255, 0.4);
-      animation: spin 8s linear infinite;
+      animation: spin 8s linear infinite reverse;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
     }
     @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px 4px rgba(0, 212, 255, 0.3); } 50% { box-shadow: 0 0 30px 8px rgba(0, 212, 255, 0.5); } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -102,6 +219,21 @@
       transition: all 0.3s;
     }
     .theme-toggle:hover { border-color: var(--cyan); transform: rotate(15deg); }
+      .settings-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 16px;
+        color: var(--cyan);
+      }
+      .settings-btn:hover { border-color: var(--cyan); transform: rotate(45deg); }
 
     /* Main layout */
     .main {
@@ -139,8 +271,34 @@
     
     /* Stats row */
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg-panel); }
-    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; transition: all 0.3s; }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 212, 255, 0.1); }
+    .stat-card { 
+      background: var(--bg-card); 
+      border: 1px solid var(--border); 
+      border-radius: 10px; 
+      padding: 14px 16px; 
+      transition: all 0.3s; 
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: statScan 3s linear infinite;
+    }
+    @keyframes statScan {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    .stat-card:hover { 
+      transform: translateY(-2px); 
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.15);
+      border-color: rgba(0, 212, 255, 0.3);
+    }
     .stat-label { font-size: 11px; color: var(--dim); margin-bottom: 4px; }
     .stat-value { font-size: 22px; font-weight: 500; color: var(--cyan); }
 
@@ -156,7 +314,22 @@
       border: 1px solid rgba(0, 212, 255, 0.3);
     }
     .msg.user .avatar { background: radial-gradient(circle, rgba(255, 102, 0, 0.2), rgba(255, 102, 0, 0.05)); border: 1px solid rgba(255, 102, 0, 0.3); }
-    .msg .bubble { padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; transition: all 0.3s; }
+    .msg .bubble { 
+      padding: 12px 16px; 
+      border-radius: 12px; 
+      font-size: 13px; 
+      line-height: 1.6; 
+      transition: all 0.3s; 
+      position: relative;
+    }
+    .msg.bot .bubble::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.03), transparent);
+      pointer-events: none;
+    }
     .msg.bot .bubble { background: var(--bg-card); border: 1px solid var(--border); border-top-left-radius: 4px; }
     .msg.user .bubble { background: rgba(0, 136, 187, 0.2); border: 1px solid rgba(0, 136, 187, 0.3); border-top-right-radius: 4px; }
     .msg .time { font-size: 10px; color: var(--dim); margin-top: 4px; }
@@ -170,10 +343,48 @@
     @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
     /* Input bar */
-    .input-bar { display: flex; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg-panel); backdrop-filter: blur(12px); }
+    .input-bar { display: flex; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg-panel); backdrop-filter: blur(12px); position: relative; }
     .input-bar input { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s; }
     .input-bar input:focus { border-color: var(--cyan); box-shadow: 0 0 8px rgba(0, 212, 255, 0.15); }
     .input-bar input::placeholder { color: var(--dim); }
+    
+    /* Autocomplete dropdown */
+    .autocomplete-dropdown {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 20;
+      display: none;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 -4px 12px rgba(0, 212, 255, 0.1);
+    }
+    .autocomplete-dropdown.visible { display: block; }
+    .autocomplete-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover, .autocomplete-item.active {
+      background: rgba(0, 212, 255, 0.1);
+      border-left: 3px solid var(--cyan);
+    }
+    .autocomplete-item .icon { font-size: 14px; }
+    .autocomplete-item .category { font-size: 10px; color: var(--dim); margin-left: auto; }
+    .autocomplete-item .highlight { color: var(--cyan); font-weight: 600; }
     .btn { padding: 12px 20px; border: none; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .btn-send { background: linear-gradient(135deg, var(--cyan), var(--blue)); color: var(--bg); }
     .btn-send:hover { box-shadow: 0 0 16px rgba(0, 212, 255, 0.4); transform: translateY(-1px); }
@@ -198,7 +409,71 @@
     .chip:hover { border-color: var(--cyan); background: rgba(0, 212, 255, 0.1); transform: translateY(-1px); }
 
     /* Responsive */
-    @media (max-width: 1100px) { .main { grid-template-columns: 1fr; } .sidebar, .right-panel { display: none; } .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 1100px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar, .right-panel { 
+        display: none;
+        position: fixed;
+        top: 69px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        width: 100%;
+      }
+      .sidebar.mobile-visible, .right-panel.mobile-visible { display: block; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); padding: 12px 16px; }
+      .stat-value { font-size: 18px; }
+    }
+    
+    @media (max-width: 768px) {
+      .header { padding: 12px 16px; }
+      .logo h1 { font-size: 16px; letter-spacing: 4px; }
+      .logo .tagline { display: none; }
+      .orb-small { width: 28px; height: 28px; }
+      .chat-area { padding: 12px; }
+      .msg { max-width: 95%; }
+      .input-bar { padding: 12px; }
+      .input-bar input { padding: 10px 12px; font-size: 13px; }
+      .btn { padding: 10px 14px; font-size: 12px; }
+      .stat-card { padding: 10px 12px; }
+      .stat-label { font-size: 10px; }
+      .stat-value { font-size: 16px; }
+      
+      /* Mobile toggle buttons */
+      .mobile-nav { display: flex !important; }
+    }
+    
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px 12px; }
+      .stat-card { padding: 8px 10px; }
+      .stat-label { font-size: 9px; }
+      .stat-value { font-size: 14px; }
+      .msg .bubble { padding: 10px 12px; font-size: 12px; }
+      .quick-actions { gap: 4px; }
+      .chip { padding: 4px 8px; font-size: 10px; }
+    }
+    
+    /* Mobile nav toggle */
+    .mobile-nav {
+      display: none;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-nav button {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mobile-nav button:hover { border-color: var(--cyan); }
 
     /* Scrollbar */
     ::-webkit-scrollbar { width: 4px; }
@@ -209,6 +484,15 @@
 <body>
   <!-- Particle Background -->
   <canvas id="particleCanvas"></canvas>
+  
+  <!-- Holographic overlays -->
+  <div class="scanlines"></div>
+  <div class="hud-ring"></div>
+  <div class="energy-wave"></div>
+  <div class="corner-bracket corner-tl"></div>
+  <div class="corner-bracket corner-tr"></div>
+  <div class="corner-bracket corner-bl"></div>
+  <div class="corner-bracket corner-br-corner"></div>
 
   <!-- Header -->
   <div class="header">
@@ -222,7 +506,13 @@
     <div class="status-bar">
       <div class="status-item"><span class="status-dot"></span><span id="statusText">连接中...</span></div>
       <div class="status-item" style="color:var(--dim)">Session: <span id="sessionId" style="color:var(--cyan)">—</span></div>
+      <div class="mobile-nav">
+        <button onclick="toggleSidebar()">☰ 菜单</button>
+        <button onclick="toggleRightPanel()">📊 面板</button>
+      </div>
+      <a href="/jarvis-interface.html" class="page-link" title="切换到设置界面" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;color:var(--cyan);border:1px solid var(--border);background:var(--bg-card);text-decoration:none;font-size:16px;transition:all 0.3s;" onmouseover="this.style.transform='rotate(15deg)'" onmouseout="this.style.transform='rotate(0)'">🏠</a>
       <div class="theme-toggle" onclick="toggleTheme()" title="切换主题">🌙</div>
+      <div class="settings-btn" onclick="openSettings()" title="模型设置">⚙</div>
     </div>
   </div>
 
@@ -292,6 +582,7 @@
 
       <!-- Input -->
       <div class="input-bar">
+        <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
         <input type="text" id="chatInput" placeholder="输入消息或选择左侧工具模块..." autofocus />
         <button class="btn btn-tool" onclick="speakLastBotMessage()" title="朗读最后一条回复">🔊</button>
         <button class="btn btn-send" onclick="handleChatSend()">发送</button>
@@ -321,20 +612,228 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);z-index:1000;align-items:center;justify-content:center;">
+    <div class="modal" style="background:var(--bg-panel);border:1px solid rgba(0,212,255,0.3);border-radius:16px;padding:32px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,0.2);">
+      <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <h2 style="font-size:18px;font-weight:500;color:var(--cyan);letter-spacing:2px;">▸ 模型配置</h2>
+        <button onclick="closeSettings()" style="background:none;border:none;color:var(--dim);font-size:24px;cursor:pointer;padding:4px 8px;transition:color 0.3s;">&times;</button>
+      </div>
+
+      <!-- Model status -->
+      <div id="modelStatus" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(0,10,20,0.5);border-radius:8px;margin-bottom:24px;font-size:13px;border-left:3px solid var(--amber);">
+        <span>●</span>
+        <span id="modelStatusText">未配置外部模型</span>
+      </div>
+
+      <!-- Provider selection -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:13px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">PROVIDER</label>
+        <select id="providerSelect" onchange="onProviderChange()" style="width:100%;background:rgba(0,10,20,0.6);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.3s;cursor:pointer;">
+          <option value="">选择服务提供商...</option>
+          <option value="openai">OpenAI (兼容 API)</option>
+          <option value="ollama">Ollama (本地部署)</option>
+        </select>
+      </div>
+
+      <!-- API Base URL -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:13px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">API BASE URL</label>
+        <input type="text" id="apiBaseUrl" placeholder="https://api.openai.com 或 http://localhost:11434" style="width:100%;background:rgba(0,10,20,0.6);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.3s;" />
+      </div>
+
+      <!-- Model Name -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:13px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">MODEL NAME</label>
+        <input type="text" id="modelName" placeholder="gpt-4o 或 llama3" style="width:100%;background:rgba(0,10,20,0.6);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.3s;" />
+      </div>
+
+      <!-- API Key -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:13px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">API KEY</label>
+        <input type="password" id="apiKey" placeholder="sk-... 或留空（本地模型）" style="width:100%;background:rgba(0,10,20,0.6);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.3s;" />
+      </div>
+
+      <!-- Temperature & Max Tokens row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div>
+          <label style="display:block;font-size:13px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">TEMPERATURE</label>
+          <input type="number" id="temperature" min="0" max="2" step="0.1" value="0.7" placeholder="0.7" style="width:100%;background:rgba(0,10,20,0.6);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.3s;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">MAX TOKENS</label>
+          <input type="number" id="maxTokens" min="1" max="8192" value="2048" placeholder="2048" style="width:100%;background:rgba(0,10,20,0.6);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.3s;" />
+        </div>
+      </div>
+
+      <!-- Timeout -->
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:13px;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">TIMEOUT (SECONDS)</label>
+        <input type="number" id="timeout" min="5" max="120" value="30" placeholder="30" style="width:100%;background:rgba(0,10,20,0.6);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.3s;" />
+      </div>
+
+      <!-- Form actions -->
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+        <button onclick="resetSettings()" style="padding:12px 20px;border:none;border-radius:10px;font-size:13px;cursor:pointer;background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.25);transition:all 0.3s;">重置</button>
+        <button onclick="testConnection()" style="padding:12px 20px;border:none;border-radius:10px;font-size:13px;cursor:pointer;background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.25);transition:all 0.3s;">测试连接</button>
+        <button onclick="saveSettings()" style="padding:12px 20px;border:none;border-radius:10px;font-size:13px;cursor:pointer;background:linear-gradient(135deg,var(--cyan),var(--blue));color:var(--bg);font-weight:500;letter-spacing:1px;transition:all 0.3s;">保存配置</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 const API = '';
+const API_BASE = window.location.origin;  // 用于设置API
 let sessionId = '';
 let msgCount = 0;
 let toolCount = 0;
 let startTime = Date.now();
 let lastBotMessage = '';
 
-// --- Particle Background Animation ---
+// --- Autocomplete Engine ---
+const AUTOCOMPLETE_DATA = [
+  // Tool commands
+  { text: '[get_weather]', category: '工具', icon: '🌤' },
+  { text: '[generate_data]', category: '工具', icon: '📊' },
+  { text: '[create_task]', category: '工具', icon: '📋' },
+  { text: '[list_tasks]', category: '工具', icon: '✅' },
+  { text: '[set_reminder]', category: '工具', icon: '⏰' },
+  { text: '[create_file]', category: '工具', icon: '📄' },
+  { text: '[read_file]', category: '工具', icon: '📖' },
+  { text: '[generate_report]', category: '工具', icon: '📝' },
+  { text: '[export_csv]', category: '工具', icon: '📦' },
+  { text: '[data_analyze]', category: '工具', icon: '📈' },
+  // Quick commands
+  { text: '你好，请做自我介绍', category: '快捷', icon: '👋' },
+  { text: '系统状态？', category: '快捷', icon: '🖥' },
+  { text: '今天的计划是什么？', category: '快捷', icon: '📅' },
+  { text: '给我讲个冷笑话', category: '快捷', icon: '😄' },
+  { text: '北京天气如何？', category: '快捷', icon: '🌤' },
+  { text: '帮我分析一下销售数据', category: '快捷', icon: '📊' },
+  // Common phrases
+  { text: '帮我创建一个任务，标题为季度汇报，截止日期2026-07-01，优先级高', category: '常用', icon: '💬' },
+  { text: '查看当前所有任务状态', category: '常用', icon: '💬' },
+  { text: '生成一份项目进度报告', category: '常用', icon: '💬' },
+  { text: '比特币当前价格是多少？', category: '常用', icon: '💬' },
+  { text: '美元对人民币汇率', category: '常用', icon: '💬' },
+  { text: '今天中国有哪些法定节假日？', category: '常用', icon: '💬' },
+];
+
+let acHistory = [];
+let acIndex = -1;
+let acActiveIdx = -1;
+
+function buildAutocompleteSuggestions(input) {
+  const query = input.toLowerCase().trim();
+  if (!query) return [];
+  
+  const scored = AUTOCOMPLETE_DATA.filter(item => {
+    return item.text.toLowerCase().includes(query) ||
+           item.category.includes(query);
+  }).map(item => ({
+    ...item,
+    score: item.text.toLowerCase() === query ? 100 : (item.text.toLowerCase().startsWith(query) ? 50 : 10)
+  })).sort((a, b) => b.score - a.score).slice(0, 6);
+  
+  // Also add history matches
+  acHistory.forEach(msg => {
+    if (msg.toLowerCase().includes(query) && scored.length < 6) {
+      scored.push({
+        text: msg,
+        category: '历史',
+        icon: '🕐',
+        score: 5
+      });
+    }
+  });
+  
+  return scored.slice(0, 6);
+}
+
+function renderAutocomplete(suggestions) {
+  const dropdown = document.getElementById('autocompleteDropdown');
+  if (!suggestions.length) {
+    dropdown.classList.remove('visible');
+    acActiveIdx = -1;
+    return;
+  }
+  
+  dropdown.innerHTML = suggestions.map((item, i) => {
+    const highlighted = highlightMatch(item.text, document.getElementById('chatInput').value.trim());
+    return `<div class="autocomplete-item${i === acActiveIdx ? ' active' : ''}" data-index="${i}" onclick="selectAutocomplete(${i})">
+      <span class="icon">${item.icon}</span>
+      <span class="text">${highlighted}</span>
+      <span class="category">${item.category}</span>
+    </div>`;
+  }).join('');
+  
+  dropdown.classList.add('visible');
+}
+
+function highlightMatch(text, query) {
+  if (!query) return text;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return text;
+  return text.substring(0, idx) + '<span class="highlight">' + text.substring(idx, idx + query.length) + '</span>' + text.substring(idx + query.length);
+}
+
+function selectAutocomplete(index) {
+  const dropdown = document.getElementById('autocompleteDropdown');
+  const item = dropdown.querySelector(`.autocomplete-item[data-index="${index}"]`);
+  if (item) {
+    const textEl = item.querySelector('.text');
+    const fullText = textEl.innerHTML.replace(/<[^>]+>/g, '');
+    document.getElementById('chatInput').value = fullText;
+    dropdown.classList.remove('visible');
+    acActiveIdx = -1;
+    document.getElementById('chatInput').focus();
+  }
+}
+
+function updateAutocomplete() {
+  const input = document.getElementById('chatInput');
+  const value = input.value.trim();
+  
+  if (value.length > 0) {
+    const suggestions = buildAutocompleteSuggestions(value);
+    acActiveIdx = -1;
+    renderAutocomplete(suggestions);
+  } else {
+    document.getElementById('autocompleteDropdown').classList.remove('visible');
+    acActiveIdx = -1;
+  }
+}
+
+function navigateAutocomplete(direction) {
+  const dropdown = document.getElementById('autocompleteDropdown');
+  if (!dropdown.classList.contains('visible')) return;
+  
+  const items = dropdown.querySelectorAll('.autocomplete-item');
+  if (!items.length) return;
+  
+  items[acActiveIdx]?.classList.remove('active');
+  acActiveIdx += direction;
+  if (acActiveIdx < 0) acActiveIdx = items.length - 1;
+  if (acActiveIdx >= items.length) acActiveIdx = 0;
+  
+  items[acActiveIdx]?.classList.add('active');
+  items[acActiveIdx]?.scrollIntoView({ block: 'nearest' });
+}
+
+function handleAutocompleteEnter() {
+  const dropdown = document.getElementById('autocompleteDropdown');
+  if (dropdown.classList.contains('visible') && acActiveIdx >= 0) {
+    selectAutocomplete(acActiveIdx);
+  }
+}
+
+// --- Enhanced Particle Background Animation ---
 (function initParticles() {
   const canvas = document.getElementById('particleCanvas');
   const ctx = canvas.getContext('2d');
   let particles = [];
-  const PARTICLE_COUNT = 60;
+  let mouse = { x: null, y: null };
+  const PARTICLE_COUNT = 80;
   
   function resize() {
     canvas.width = window.innerWidth;
@@ -343,6 +842,16 @@ let lastBotMessage = '';
   window.addEventListener('resize', resize);
   resize();
   
+  // Mouse tracking for interactive effects
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('mouseleave', () => {
+    mouse.x = null;
+    mouse.y = null;
+  });
+  
   class Particle {
     constructor() {
       this.reset();
@@ -350,21 +859,50 @@ let lastBotMessage = '';
     reset() {
       this.x = Math.random() * canvas.width;
       this.y = Math.random() * canvas.height;
-      this.vx = (Math.random() - 0.5) * 0.5;
-      this.vy = (Math.random() - 0.5) * 0.5;
-      this.radius = Math.random() * 1.5 + 0.5;
-      this.opacity = Math.random() * 0.4 + 0.1;
+      this.vx = (Math.random() - 0.5) * 0.8;
+      this.vy = (Math.random() - 0.5) * 0.8;
+      this.radius = Math.random() * 2 + 0.5;
+      this.baseOpacity = Math.random() * 0.5 + 0.1;
+      this.opacity = this.baseOpacity;
+      this.pulseSpeed = Math.random() * 0.02 + 0.01;
+      this.pulsePhase = Math.random() * Math.PI * 2;
+      this.color = Math.random() > 0.8 ? '#ff6600' : '#00d4ff';
     }
-    update() {
+    update(time) {
       this.x += this.vx;
       this.y += this.vy;
       if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
       if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      
+      // Pulsing opacity
+      this.opacity = this.baseOpacity + Math.sin(time * this.pulseSpeed + this.pulsePhase) * 0.15;
+      
+      // Mouse interaction - particles repel slightly
+      if (mouse.x !== null) {
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          this.x += dx / dist * 1.5;
+          this.y += dy / dist * 1.5;
+          this.opacity = Math.min(0.8, this.opacity + 0.2);
+        }
+      }
     }
     draw() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0, 212, 255, ${this.opacity})`;
+      ctx.fillStyle = this.color === '#ff6600' 
+        ? `rgba(255, 102, 0, ${this.opacity})` 
+        : `rgba(0, 212, 255, ${this.opacity})`;
+      ctx.fill();
+      
+      // Glow effect
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+      ctx.fillStyle = this.color === '#ff6600' 
+        ? `rgba(255, 102, 0, ${this.opacity * 0.2})` 
+        : `rgba(0, 212, 255, ${this.opacity * 0.2})`;
       ctx.fill();
     }
   }
@@ -373,27 +911,66 @@ let lastBotMessage = '';
     particles.push(new Particle());
   }
   
+  let time = 0;
   function animate() {
+    time++;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw connections
+    // Draw connections with dynamic distance threshold
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
         const dx = particles[i].x - particles[j].x;
         const dy = particles[i].y - particles[j].y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 150) {
+        
+        // Increase connection distance for nearby mouse
+        const threshold = (mouse.x !== null) ? 200 : 150;
+        
+        if (dist < threshold) {
           ctx.beginPath();
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(0, 212, 255, ${0.05 * (1 - dist / 150)})`;
+          
+          // Gradient connection line
+          const gradient = ctx.createLinearGradient(
+            particles[i].x, particles[i].y,
+            particles[j].x, particles[j].y
+          );
+          const alpha = 0.08 * (1 - dist / threshold);
+          if (particles[i].color === particles[j].color) {
+            gradient.addColorStop(0, particles[i].color === '#00d4ff' 
+              ? `rgba(0, 212, 255, ${alpha})` : `rgba(255, 102, 0, ${alpha})`);
+            gradient.addColorStop(1, particles[j].color === '#00d4ff' 
+              ? `rgba(0, 212, 255, ${alpha})` : `rgba(255, 102, 0, ${alpha})`);
+          } else {
+            gradient.addColorStop(0, `rgba(0, 212, 255, ${alpha})`);
+            gradient.addColorStop(1, `rgba(255, 102, 0, ${alpha})`);
+          }
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+      
+      // Connection to mouse
+      if (mouse.x !== null) {
+        const dx = particles[i].x - mouse.x;
+        const dy = particles[i].y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 180) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(mouse.x, mouse.y);
+          const alpha = 0.15 * (1 - dist / 180);
+          ctx.strokeStyle = `rgba(0, 212, 255, ${alpha})`;
+          ctx.lineWidth = 0.8;
           ctx.stroke();
         }
       }
     }
     
     particles.forEach(p => {
-      p.update();
+      p.update(time);
       p.draw();
     });
     requestAnimationFrame(animate);
@@ -608,10 +1185,181 @@ function toggleTheme() {
   }
 }
 
-// Enter key
-document.getElementById('chatInput').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') handleChatSend();
+// Mobile nav toggles
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.right-panel');
+  sidebar.classList.toggle('mobile-visible');
+  overlay.classList.remove('mobile-visible');
+}
+
+function toggleRightPanel() {
+  const panel = document.querySelector('.right-panel');
+  const sidebar = document.querySelector('.sidebar');
+  panel.classList.toggle('mobile-visible');
+  sidebar.classList.remove('mobile-visible');
+}
+
+// ========== Settings Modal ==========
+function openSettings() {
+  document.getElementById('settingsModal').style.display = 'flex';
+  loadCurrentConfig();
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').style.display = 'none';
+}
+
+async function loadCurrentConfig() {
+  try {
+    const res = await fetch(`${API_BASE}/api/model/status`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.configured && data.config) {
+      const cfg = data.config;
+      document.getElementById('providerSelect').value = cfg.provider || '';
+      document.getElementById('apiBaseUrl').value = cfg.api_base_url || '';
+      document.getElementById('modelName').value = cfg.model_name || '';
+      document.getElementById('temperature').value = cfg.temperature || 0.7;
+      document.getElementById('maxTokens').value = cfg.max_tokens || 2048;
+      document.getElementById('timeout').value = cfg.timeout_seconds || 30;
+      document.getElementById('apiKey').value = '';
+      document.getElementById('apiKey').placeholder = '已配置，留空保持不变';
+      updateModelStatus(true, data.status);
+    } else {
+      updateModelStatus(false);
+    }
+  } catch (err) {
+    addLog('system', '加载配置失败: ' + err.message, 'error');
+  }
+}
+
+function updateModelStatus(configured, status) {
+  const el = document.getElementById('modelStatus');
+  const text = document.getElementById('modelStatusText');
+  el.style.borderLeftColor = configured ? (status === 'connected' ? 'var(--green)' : 'var(--red)') : 'var(--amber)';
+  text.textContent = configured 
+    ? (status === 'connected' ? '模型已连接' : '连接失败，请检查配置')
+    : '未配置外部模型';
+}
+
+function onProviderChange() {
+  const provider = document.getElementById('providerSelect').value;
+  const urlInput = document.getElementById('apiBaseUrl');
+  const keyInput = document.getElementById('apiKey');
+  if (provider === 'openai') {
+    urlInput.placeholder = 'https://api.openai.com';
+    keyInput.placeholder = 'sk-...';
+    keyInput.type = 'password';
+  } else if (provider === 'ollama') {
+    urlInput.placeholder = 'http://localhost:11434';
+    keyInput.placeholder = '本地模型无需 Key';
+    keyInput.type = 'text';
+    keyInput.value = '';
+  }
+}
+
+async function saveSettings() {
+  const provider = document.getElementById('providerSelect').value;
+  const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+  const modelName = document.getElementById('modelName').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const temperature = parseFloat(document.getElementById('temperature').value);
+  const maxTokens = parseInt(document.getElementById('maxTokens').value);
+  const timeout = parseInt(document.getElementById('timeout').value);
+
+  if (!provider) { alert('请选择 Provider'); return; }
+  if (!apiBaseUrl) { alert('请填写 API Base URL'); return; }
+  if (!modelName) { alert('请填写 Model Name'); return; }
+  if (provider === 'openai' && !apiKey) { alert('OpenAI 模式需要提供 API Key'); return; }
+
+  const config = { provider, api_base_url: apiBaseUrl, model_name: modelName, temperature, max_tokens: maxTokens, timeout_seconds: timeout };
+  if (provider === 'openai' && apiKey) {
+    config.api_key = apiKey;
+  }
+
+  try {
+    addLog('system', '正在保存配置...', 'info');
+    const res = await fetch(`${API_BASE}/api/model/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || '保存失败');
+    }
+    addLog('system', '配置已保存', 'success');
+    updateModelStatus(true, 'connected');
+  } catch (err) {
+    addLog('system', '保存失败: ' + err.message, 'error');
+  }
+}
+
+async function testConnection() {
+  const provider = document.getElementById('providerSelect').value;
+  if (!provider) { alert('请先选择 Provider'); return; }
+  addLog('system', '正在测试连接...', 'info');
+  try {
+    const res = await fetch(`${API_BASE}/api/model/test`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      addLog('system', '连接测试成功: ' + data.status, 'success');
+      updateModelStatus(true, 'connected');
+    } else {
+      addLog('system', '连接测试失败: ' + data.error, 'error');
+      updateModelStatus(true, 'disconnected');
+    }
+  } catch (err) {
+    addLog('system', '测试请求失败: ' + err.message, 'error');
+    updateModelStatus(false);
+  }
+}
+
+function resetSettings() {
+  document.getElementById('providerSelect').value = '';
+  document.getElementById('apiBaseUrl').value = '';
+  document.getElementById('modelName').value = '';
+  document.getElementById('apiKey').value = '';
+  document.getElementById('apiKey').placeholder = 'sk-... 或留空（本地模型）';
+  document.getElementById('apiKey').type = 'password';
+  document.getElementById('temperature').value = 0.7;
+  document.getElementById('maxTokens').value = 2048;
+  document.getElementById('timeout').value = 30;
+  updateModelStatus(false);
+}
+
+// Close modal on overlay click
+document.getElementById('settingsModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeSettings();
 });
+
+// Enter key
+const chatInput = document.getElementById('chatInput');
+chatInput.addEventListener('input', updateAutocomplete);
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); navigateAutocomplete(1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); navigateAutocomplete(-1); }
+  else if (e.key === 'Tab') {
+    e.preventDefault();
+    handleAutocompleteEnter();
+  }
+  else if (e.key === 'Enter') { handleChatSend(); }
+});
+
+// Also track history on user message send
+const origHandleChatSend = handleChatSend;
+handleChatSend = async function() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (msg) {
+    acHistory.unshift(msg);
+    if (acHistory.length > 50) acHistory.pop();
+  }
+  document.getElementById('autocompleteDropdown').classList.remove('visible');
+  acActiveIdx = -1;
+  await origHandleChatSend();
+};
 </script>
 </body>
 </html>
