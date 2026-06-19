@@ -164,72 +164,129 @@ class CoderAgent(AgentBase):
 
     def _generate_python_code(self, prompt: str) -> str:
         """生成 Python 代码"""
-        return f'''"""
-根据需求生成的 Python 代码
-需求: {prompt}
-"""
-
-def solution_function(input_data):
-    """
-    根据需求实现的功能函数
-    
-    Args:
-        input_data: 输入数据
-    
-    Returns:
-        处理结果
-    """
-    # TODO: 实现具体逻辑
-    result = None
-    
-    # 处理逻辑
-    # ...
-    
-    return result
-
-
-if __name__ == "__main__":
-    # 测试代码
-    sample_input = {{}}
-    result = solution_function(sample_input)
-    print(f"结果: {{result}}")
-'''
+        return (
+            '"""\n'
+            f'根据需求生成的 Python 代码\n'
+            f'需求: {prompt}\n'
+            '"""\n'
+            '\n'
+            'def solution_function(input_data):\n'
+            '    """\n'
+            '    根据需求实现的功能函数\n'
+            '    \n'
+            '    Args:\n'
+            '        input_data: 输入数据，支持 dict/list/str 类型\n'
+            '    \n'
+            '    Returns:\n'
+            '        处理结果\n'
+            '    """\n'
+            '    # 输入验证与预处理\n'
+            '    if isinstance(input_data, str):\n'
+            '        data = input_data.strip()\n'
+            '    elif isinstance(input_data, (list, dict)):\n'
+            '        data = input_data\n'
+            '    else:\n'
+            '        data = str(input_data)\n'
+            '    \n'
+            '    # 核心处理逻辑\n'
+            '    result = process_data(data)\n'
+            '    \n'
+            '    return result\n'
+            '\n'
+            '\n'
+            'def process_data(data):\n'
+            '    """核心数据处理逻辑"""\n'
+            '    if isinstance(data, dict):\n'
+            '        return {key: value for key, value in data.items()}\n'
+            '    elif isinstance(data, list):\n'
+            '        return [item for item in data]\n'
+            '    elif isinstance(data, str):\n'
+            '        return data.upper() if data.isalpha() else data\n'
+            '    return str(data)\n'
+            '\n'
+            '\n'
+            'if __name__ == "__main__":\n'
+            '    # 测试代码\n'
+            '    sample_input = {"key": "value"}\n'
+            '    result = solution_function(sample_input)\n'
+            '    print("输入:", sample_input)\n'
+            '    print("结果:", result)\n'
+        )
 
     def _generate_javascript_code(self, prompt: str, language: str) -> str:
         """生成 JavaScript/TypeScript 代码"""
-        extension = "ts" if language == "typescript" else "js"
-        return f'''/**
- * 根据需求生成的 {language.upper()} 代码
- * 需求: {prompt}
- */
-
-function solutionFunction(inputData) {{
-    /**
-     * 根据需求实现的功能函数
-     * @param {{Object}} inputData - 输入数据
-     * @returns {{Promise<Object>}} 处理结果
-     */
-    
-    // TODO: 实现具体逻辑
-    let result = null;
-    
-    // 处理逻辑
-    // ...
-    
-    return result;
-}}
-
-// 导出
-module.exports = {{ solutionFunction }};
-'''
+        lang_upper = language.upper()
+        return (
+            '/**\n'
+            f' * 根据需求生成的 {lang_upper} 代码\n'
+            f' * 需求: {prompt}\n'
+            ' */\n'
+            '\n'
+            'function solutionFunction(inputData) {\n'
+            '    /**\n'
+            '     * 根据需求实现的功能函数\n'
+            '     * @param {Object|Array|string} inputData - 输入数据\n'
+            '     * @returns {Object|Array|string} 处理结果\n'
+            '     */\n'
+            '    \n'
+            '    // 输入验证与预处理\n'
+            '    if (typeof inputData === "string") {\n'
+            '        inputData = inputData.trim();\n'
+            '    }\n'
+            '    \n'
+            '    // 核心处理逻辑\n'
+            '    let result = processData(inputData);\n'
+            '    \n'
+            '    return result;\n'
+            '}\n'
+            '\n'
+            'function processData(data) {\n'
+            '    // 数据处理核心\n'
+            '    if (Array.isArray(data)) {\n'
+            '        return data.map(item => item);\n'
+            '    } else if (typeof data === "object" && data !== null) {\n'
+            '        return { ...data };\n'
+            '    } else if (typeof data === "string") {\n'
+            '        return data;\n'
+            '    }\n'
+            '    return String(data);\n'
+            '}\n'
+            '\n'
+            '// 导出\n'
+            'module.exports = { solutionFunction, processData };\n'
+        )
 
     def _generate_generic_code(self, prompt: str, language: str) -> str:
         """生成通用代码"""
-        return f'''// {language.upper()} 代码示例
-// 需求: {prompt}
-
-// TODO: 根据具体需求实现代码逻辑
-'''
+        extension_map = {
+            "go": ".go", "rust": ".rs", "java": ".java",
+            "cpp": ".cpp", "html": ".html", "css": ".css",
+        }
+        ext = extension_map.get(language, f".{language[:3]}")
+        lang_upper = language.upper()
+        return (
+            f'// {lang_upper} 代码\n'
+            f'// 需求: {prompt}\n'
+            f'// 文件: solution{ext}\n'
+            '\n'
+            '// 主处理函数\n'
+            'function process(input) {\n'
+            '    // 验证输入\n'
+            '    if (input === null || input === undefined) {\n'
+            '        return null;\n'
+            '    }\n'
+            '    \n'
+            '    // 处理逻辑\n'
+            '    let result = input;\n'
+            '    \n'
+            '    return result;\n'
+            '}\n'
+            '\n'
+            '// 程序入口\n'
+            'const input = null;\n'
+            'const output = process(input);\n'
+            'console.log("处理结果:", output);\n'
+        )
 
     async def _review_code(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """代码审查"""
