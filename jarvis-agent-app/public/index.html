@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,32 +19,118 @@
       --red: #ff3366;
       --border: rgba(0, 212, 255, 0.15);
     }
+    [data-theme="light"] {
+      --bg: #f0f4f8;
+      --bg-panel: rgba(255, 255, 255, 0.95);
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --text: #1a202c;
+      --dim: #718096;
+      --border: rgba(0, 136, 187, 0.2);
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; min-height: 100vh; overflow-x: hidden; }
     
+    /* Particle canvas background */
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
     /* Header */
-    .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--bg-panel); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-panel);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
     .logo { display: flex; align-items: center; gap: 14px; }
-    .orb-small { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, var(--cyan), var(--blue)); box-shadow: 0 0 20px 4px rgba(0, 212, 255, 0.3); animation: pulse 3s ease-in-out infinite; position: relative; }
-    .orb-small::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid rgba(0, 212, 255, 0.4); animation: spin 8s linear infinite; }
+    .orb-small {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--cyan), var(--blue));
+      box-shadow: 0 0 20px 4px rgba(0, 212, 255, 0.3);
+      animation: pulse 3s ease-in-out infinite;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .orb-small::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 212, 255, 0.4);
+      animation: spin 8s linear infinite;
+    }
     @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px 4px rgba(0, 212, 255, 0.3); } 50% { box-shadow: 0 0 30px 8px rgba(0, 212, 255, 0.5); } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .logo h1 { font-size: 20px; letter-spacing: 6px; font-weight: 300; background: linear-gradient(135deg, var(--cyan), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .logo h1 {
+      font-size: 20px;
+      letter-spacing: 6px;
+      font-weight: 300;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .logo .tagline { font-size: 10px; color: var(--dim); letter-spacing: 2px; }
     .status-bar { display: flex; align-items: center; gap: 16px; font-size: 12px; }
     .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: blink 2s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     .status-item { display: flex; align-items: center; gap: 6px; }
+    .theme-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .theme-toggle:hover { border-color: var(--cyan); transform: rotate(15deg); }
 
     /* Main layout */
-    .main { display: grid; grid-template-columns: 280px 1fr 300px; gap: 0; min-height: calc(100vh - 69px); }
+    .main {
+      display: grid;
+      grid-template-columns: 280px 1fr 300px;
+      gap: 0;
+      min-height: calc(100vh - 69px);
+      position: relative;
+      z-index: 1;
+    }
     
     /* Sidebar */
     .sidebar { background: var(--bg-panel); border-right: 1px solid var(--border); padding: 16px; overflow-y: auto; }
     .sidebar-section { margin-bottom: 24px; }
     .sidebar-title { font-size: 11px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
-    .module-btn { width: 100%; padding: 10px 14px; margin-bottom: 6px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; cursor: pointer; transition: all 0.2s; text-align: left; }
-    .module-btn:hover { border-color: var(--cyan); background: rgba(0, 212, 255, 0.08); }
+    .module-btn {
+      width: 100%;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .module-btn:hover { border-color: var(--cyan); background: rgba(0, 212, 255, 0.08); transform: translateX(4px); }
     .module-btn.active { border-color: var(--cyan); background: rgba(0, 212, 255, 0.12); box-shadow: 0 0 12px rgba(0, 212, 255, 0.15); }
     .module-btn .icon { margin-right: 8px; }
     
@@ -53,28 +139,40 @@
     
     /* Stats row */
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg-panel); }
-    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; transition: all 0.3s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 212, 255, 0.1); }
     .stat-label { font-size: 11px; color: var(--dim); margin-bottom: 4px; }
     .stat-value { font-size: 22px; font-weight: 500; color: var(--cyan); }
 
     /* Chat area */
     .chat-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .msg { display: flex; gap: 10px; max-width: 85%; animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .msg { display: flex; gap: 10px; max-width: 85%; animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     .msg.user { margin-left: auto; flex-direction: row-reverse; }
-    .msg .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .msg.bot .avatar { background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); }
-    .msg.user .avatar { background: rgba(255, 102, 0, 0.15); border: 1px solid rgba(255, 102, 0, 0.3); }
-    .msg .bubble { padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+    .msg .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.05));
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+    .msg.user .avatar { background: radial-gradient(circle, rgba(255, 102, 0, 0.2), rgba(255, 102, 0, 0.05)); border: 1px solid rgba(255, 102, 0, 0.3); }
+    .msg .bubble { padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; transition: all 0.3s; }
     .msg.bot .bubble { background: var(--bg-card); border: 1px solid var(--border); border-top-left-radius: 4px; }
     .msg.user .bubble { background: rgba(0, 136, 187, 0.2); border: 1px solid rgba(0, 136, 187, 0.3); border-top-right-radius: 4px; }
     .msg .time { font-size: 10px; color: var(--dim); margin-top: 4px; }
     .msg.user .time { text-align: right; }
 
+    /* Typing indicator */
+    .typing-indicator { display: flex; gap: 4px; padding: 8px 16px; }
+    .typing-indicator span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: bounce 1.4s infinite both; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
     /* Input bar */
     .input-bar { display: flex; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg-panel); backdrop-filter: blur(12px); }
     .input-bar input { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s; }
-    .input-bar input:focus { border-color: var(--cyan); }
+    .input-bar input:focus { border-color: var(--cyan); box-shadow: 0 0 8px rgba(0, 212, 255, 0.15); }
     .input-bar input::placeholder { color: var(--dim); }
     .btn { padding: 12px 20px; border: none; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .btn-send { background: linear-gradient(135deg, var(--cyan), var(--blue)); color: var(--bg); }
@@ -97,7 +195,7 @@
     /* Quick actions */
     .quick-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .chip { padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); transition: all 0.2s; }
-    .chip:hover { border-color: var(--cyan); background: rgba(0, 212, 255, 0.1); }
+    .chip:hover { border-color: var(--cyan); background: rgba(0, 212, 255, 0.1); transform: translateY(-1px); }
 
     /* Responsive */
     @media (max-width: 1100px) { .main { grid-template-columns: 1fr; } .sidebar, .right-panel { display: none; } .stats-row { grid-template-columns: repeat(2, 1fr); } }
@@ -109,6 +207,9 @@
   </style>
 </head>
 <body>
+  <!-- Particle Background -->
+  <canvas id="particleCanvas"></canvas>
+
   <!-- Header -->
   <div class="header">
     <div class="logo">
@@ -121,6 +222,7 @@
     <div class="status-bar">
       <div class="status-item"><span class="status-dot"></span><span id="statusText">连接中...</span></div>
       <div class="status-item" style="color:var(--dim)">Session: <span id="sessionId" style="color:var(--cyan)">—</span></div>
+      <div class="theme-toggle" onclick="toggleTheme()" title="切换主题">🌙</div>
     </div>
   </div>
 
@@ -191,7 +293,7 @@
       <!-- Input -->
       <div class="input-bar">
         <input type="text" id="chatInput" placeholder="输入消息或选择左侧工具模块..." autofocus />
-        <button class="btn btn-tool" onclick="sendMessageViaTool('agent_chat', document.getElementById('chatInput').value)">语音</button>
+        <button class="btn btn-tool" onclick="speakLastBotMessage()" title="朗读最后一条回复">🔊</button>
         <button class="btn btn-send" onclick="handleChatSend()">发送</button>
       </div>
     </div>
@@ -200,7 +302,7 @@
     <div class="right-panel">
       <div class="panel-block">
         <h3>▸ 系统信息</h3>
-        <div class="info-row"><span class="info-key">版本</span><span class="info-val">0.1.0</span></div>
+        <div class="info-row"><span class="info-key">版本</span><span class="info-val">0.2.0-enhanced</span></div>
         <div class="info-row"><span class="info-key">框架</span><span class="info-val">FastAPI + Python</span></div>
         <div class="info-row"><span class="info-key">Session</span><span class="info-val" id="rightSession">—</span></div>
         <div class="info-row"><span class="info-key">知识图谱</span><span class="info-val" id="rightKG">0</span></div>
@@ -225,6 +327,79 @@ let sessionId = '';
 let msgCount = 0;
 let toolCount = 0;
 let startTime = Date.now();
+let lastBotMessage = '';
+
+// --- Particle Background Animation ---
+(function initParticles() {
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  const PARTICLE_COUNT = 60;
+  
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.vx = (Math.random() - 0.5) * 0.5;
+      this.vy = (Math.random() - 0.5) * 0.5;
+      this.radius = Math.random() * 1.5 + 0.5;
+      this.opacity = Math.random() * 0.4 + 0.1;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+      if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 212, 255, ${this.opacity})`;
+      ctx.fill();
+    }
+  }
+  
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push(new Particle());
+  }
+  
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(0, 212, 255, ${0.05 * (1 - dist / 150)})`;
+          ctx.stroke();
+        }
+      }
+    }
+    
+    particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
 
 // Initialize
 document.getElementById('startTime').textContent = formatTime(new Date());
@@ -277,6 +452,22 @@ async function sendMessage(type, payload) {
     document.getElementById('chatInput').value = '';
     addMessage('user', payload.message);
     
+    // Show typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'msg bot';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = `
+      <div class="avatar">🤖</div>
+      <div>
+        <div class="bubble">
+          <div class="typing-indicator"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    `;
+    const area = document.getElementById('chatArea');
+    area.appendChild(typingDiv);
+    area.scrollTop = area.scrollHeight;
+    
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -284,12 +475,35 @@ async function sendMessage(type, payload) {
         body: JSON.stringify({ message: payload.message, modality: 'text', session_id: sessionId }),
       });
       const data = await res.json();
-      addMessage('bot', data.output, data.reasoning);
+      
+      // Remove typing indicator
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) indicator.remove();
+      
+      addMessage('bot', data.output, data.reasoning, data.nlp_pipeline);
+      lastBotMessage = data.output;
       msgCount++;
       document.getElementById('statMsgs').textContent = msgCount;
     } catch (e) {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) indicator.remove();
       addMessage('bot', '⚠️ 请求失败: ' + e.message);
     }
+  }
+}
+
+function speakLastBotMessage() {
+  if (!lastBotMessage) {
+    alert('暂无可朗读的内容');
+    return;
+  }
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(lastBotMessage);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    alert('您的浏览器不支持语音合成');
   }
 }
 
@@ -317,7 +531,6 @@ async function quickAction(tool, ...args) {
     document.getElementById('statTools').textContent = toolCount;
     addLog('TOOL', `${tool}: ${data.status || 'done'}`);
     
-    // Refresh tasks if relevant
     if (tool === 'create_task' || tool === 'list_tasks') {
       loadTasks();
     }
@@ -326,14 +539,30 @@ async function quickAction(tool, ...args) {
   }
 }
 
-function addMessage(role, text, meta) {
+function addMessage(role, text, meta, nlpPipeline) {
   const area = document.getElementById('chatArea');
   const div = document.createElement('div');
   div.className = `msg ${role === 'user' ? 'user' : 'bot'}`;
+  
+  let extraInfo = '';
+  if (meta && meta.includes('intent=')) {
+    // Parse NLP pipeline info
+    if (nlpPipeline) {
+      extraInfo = `<div style="color:var(--cyan);font-size:11px;margin-bottom:6px">▸ NLP分析: 意图=${nlpPipeline.intent} | 置信度=${nlpPipeline.confidence.toFixed(2)} | 情感=${nlpPipeline.sentiment.label}</div>`;
+      if (Object.keys(nlpPipeline.entities || {}).length > 0) {
+        extraInfo += `<div style="color:var(--amber);font-size:11px">▸ 实体: ${Object.entries(nlpPipeline.entities).map(([k,v]) => `${k}="${v}"`).join(', ')}</div>`;
+      }
+    } else {
+      extraInfo = `<div style="color:var(--cyan);font-size:11px;margin-bottom:4px">▸ ${meta}</div>`;
+    }
+  } else if (meta) {
+    extraInfo = `<div style="color:var(--cyan);font-size:11px;margin-bottom:4px">▸ ${meta}</div>`;
+  }
+  
   div.innerHTML = `
     <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
     <div>
-      <div class="bubble">${meta ? `<div style="color:var(--cyan);font-size:11px;margin-bottom:4px">▸ ${meta}</div>` : ''}${text}</div>
+      <div class="bubble">${extraInfo}${text}</div>
       <div class="time">${formatTime(new Date())}</div>
     </div>
   `;
@@ -363,6 +592,19 @@ async function loadTasks() {
     ).join('');
   } catch (e) {
     console.warn('Failed to load tasks:', e);
+  }
+}
+
+// Theme toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.querySelector('.theme-toggle');
+  if (html.getAttribute('data-theme') === 'dark') {
+    html.setAttribute('data-theme', 'light');
+    btn.textContent = '☀️';
+  } else {
+    html.setAttribute('data-theme', 'dark');
+    btn.textContent = '🌙';
   }
 }
 
