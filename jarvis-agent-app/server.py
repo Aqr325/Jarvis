@@ -26,7 +26,7 @@ from fastapi import (
     Query,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -122,61 +122,57 @@ async def lifespan(app: FastAPI):
 
     # Register built-in modules as tools
     agent.execution.register_tool(
-        "weather", lambda city: asyncio.create_task(weather.get_weather(city))
+        "weather", lambda city: weather.get_weather(city)
     )
     agent.execution.register_tool(
         "data_analyze",
-        lambda name: asyncio.create_task(data_analysis.analyze(name)),
+        lambda name: data_analysis.analyze(name),
     )
     agent.execution.register_tool(
         "generate_data",
-        lambda name, n=100: asyncio.create_task(
-            data_analysis.generate_sample(name, n)
-        ),
+        lambda name, n=100: data_analysis.generate_sample(name, n),
     )
     agent.execution.register_tool(
         "create_task",
-        lambda title, due_date, priority="medium": asyncio.create_task(
-            scheduler.create_task(title, due_date, priority)
+        lambda title, due_date, priority="medium": scheduler.create_task(
+            title, due_date, priority
         ),
     )
     agent.execution.register_tool(
         "list_tasks",
-        lambda status=None: asyncio.create_task(scheduler.list_tasks(status)),
+        lambda status=None: scheduler.list_tasks(status),
     )
     agent.execution.register_tool(
         "set_reminder",
-        lambda message, delay_seconds=5: asyncio.create_task(
-            scheduler.set_reminder(message, delay_seconds)
+        lambda message, delay_seconds=5: scheduler.set_reminder(
+            message, delay_seconds
         ),
     )
     agent.execution.register_tool(
         "create_file",
-        lambda path, content="": asyncio.create_task(
-            file_ops.create_file(path, content)
-        ),
+        lambda path, content="": file_ops.create_file(path, content),
     )
     agent.execution.register_tool(
-        "read_file", lambda path: asyncio.create_task(file_ops.read_file(path))
+        "read_file", lambda path: file_ops.read_file(path)
     )
     agent.execution.register_tool(
         "list_directory",
-        lambda path: asyncio.create_task(file_ops.list_directory(path)),
+        lambda path: file_ops.list_directory(path),
     )
     agent.execution.register_tool(
         "generate_report",
-        lambda title, sections="[]": asyncio.create_task(
-            report_gen.generate_report(title, eval(sections))
+        lambda title, sections=None: report_gen.generate_report(
+            title, sections or []
         ),
     )
     agent.execution.register_tool(
         "export_csv",
-        lambda data="[]", filename="output.csv": asyncio.create_task(
-            report_gen.export_csv(eval(data), filename)
+        lambda data=None, filename="output.csv": report_gen.export_csv(
+            data or [], filename
         ),
     )
     agent.execution.register_tool(
-        "agent_chat", lambda msg: asyncio.create_task(agent.process(msg))
+        "agent_chat", lambda msg: agent.process(msg)
     )
 
     logger.info("J.A.R.V.I.S. Agent initialized with middleware support")
@@ -310,7 +306,7 @@ async def call_tool(req: ToolRequest, request: Request):
 async def list_tools(request: Request):
     client_id = extract_client_id(request)
     await _check_rate_limit(client_id, "general")
-    return {"available_tools": agent.execution.tools.keys()}
+    return {"available_tools": list(agent.execution.tools.keys())}
 
 
 @app.post("/api/scheduler/task")
@@ -589,3 +585,28 @@ async def health():
         "websocket_enabled": True,
         "rate_limiting": "active",
     }
+
+
+# ===================================================================
+# Static file catch-all — serves frontend for non-API routes
+# ===================================================================
+from pathlib import Path
+
+_public_root = Path(__file__).resolve().parent / "public"
+
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    """Serve frontend static files. Only catches non-API paths."""
+    # Skip API/ws paths — already handled by specific routes above
+    if full_path.startswith(("api/", "api", "ws")):
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    # Try exact file, root path, or SPA fallback to index.html
+    candidate = _public_root / full_path if full_path else _public_root / "index.html"
+    if candidate.is_file():
+        return FileResponse(str(candidate))
+    index = _public_root / "index.html"
+    if index.exists():
+        return FileResponse(str(index))
+    return JSONResponse({"error": "Not found"}, status_code=404)

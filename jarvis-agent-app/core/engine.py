@@ -583,7 +583,7 @@ class ExecutionModule:
             return {"error": f"Tool '{tool_name}' not found", "status": "error"}
         try:
             result = tool(**args)
-            if asyncio.iscoroutine(result):
+            if asyncio.iscoroutine(result) or isinstance(result, asyncio.Task):
                 result = await result
             return {"result": result, "tool": tool_name, "status": "success"}
         except Exception as e:
