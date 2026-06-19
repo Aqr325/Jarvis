@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S. - Just A Rather Very Intelligent System</title>
+<style>
+  :root {
+    --primary: #00d4ff;
+    --secondary: #0099cc;
+    --accent: #ff6600;
+    --bg-dark: #0a0e1a;
+    --bg-panel: rgba(10, 20, 40, 0.85);
+    --text-light: #e0e8f0;
+    --text-dim: #7a8a9a;
+    --success: #00ff88;
+    --warning: #ffaa00;
+    --danger: #ff3366;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-light);
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Hero section with reactive orb */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
+  }
+
+  .orb-container {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    margin-bottom: 30px;
+  }
+
+  .orb-core {
+    position: absolute;
+    inset: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, var(--primary), var(--secondary));
+    border-radius: 50%;
+    box-shadow: 0 0 40px 10px rgba(0, 212, 255, 0.4);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  .orb-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 50%;
+    animation: rotate 12s linear infinite;
+  }
+
+  .orb-ring:nth-child(2) {
+    inset: 15px;
+    animation-duration: 10s;
+    animation-direction: reverse;
+    border-color: rgba(0, 153, 204, 0.4);
+  }
+
+  .orb-ring:nth-child(3) {
+    inset: 30px;
+    animation-duration: 8s;
+    border-color: rgba(0, 212, 255, 0.5);
+  }
+
+  .orb-halo {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 212, 255, 0.1), transparent);
+    animation: halo-pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 40px 10px rgba(0, 212, 255, 0.4); transform: translate(-50%, -50%) scale(1); }
+    50% { box-shadow: 0 0 60px 20px rgba(0, 212, 255, 0.6); transform: translate(-50%, -50%) scale(1.1); }
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes halo-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+
+  .title {
+    font-size: 42px;
+    letter-spacing: 12px;
+    font-weight: 300;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* Control panel */
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 0 auto 30px;
+    max-width: 900px;
+    backdrop-filter: blur(20px);
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--primary);
+    letter-spacing: 2px;
+  }
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Input area */
+  .input-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .input-field {
+    flex: 1;
+    background: rgba(0, 10, 20, 0.6);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text-light);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .input-field:focus {
+    border-color: var(--primary);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-dim);
+  }
+
+  .btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--bg-dark);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: rgba(0, 212, 255, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(0, 212, 255, 0.2);
+  }
+
+  /* Module grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: rgba(0, 10, 20, 0.5);
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 212, 255, 0.2);
+  }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--primary);
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* Activity log */
+  .log-container {
+    background: rgba(0, 5, 10, 0.7);
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    border-radius: 10px;
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.05);
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-time {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    font-family: 'Courier New', monospace;
+  }
+
+  .log-type {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .log-type.info { background: rgba(0, 212, 255, 0.15); color: var(--primary); }
+  .log-type.success { background: rgba(0, 255, 136, 0.15); color: var(--success); }
+  .log-type.warning { background: rgba(255, 170, 0, 0.15); color: var(--warning); }
+  .log-type.error { background: rgba(255, 51, 102, 0.15); color: var(--danger); }
+
+  .log-msg {
+    font-size: 13px;
+    color: var(--text-light);
+    flex: 1;
+  }
+
+  /* Waveform visualizer */
+  .waveform {
+    height: 60px;
+    background: rgba(0, 10, 20, 0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 10px;
+  }
+
+  .wave-bar {
+    width: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+    animation: wave 1.5s ease-in-out infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { height: 8px; opacity: 0.3; }
+    50% { height: 40px; opacity: 1; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .title { font-size: 28px; letter-spacing: 8px; }
+    .grid { grid-template-columns: 1fr; }
+    .input-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="orb-container">
+      <div class="orb-halo"></div>
+      <div class="orb-core"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+    </div>
+    <h1 class="title">J.A.R.V.I.S.</h1>
+    <p class="subtitle">Just A Rather Very Intelligent System</p>
+  </section>
+
+  <!-- Main Panel -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">▸ 智能控制台</h2>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span>在线</span>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-row">
+      <input type="text" class="input-field" id="userInput" placeholder="输入指令或问题..." />
+      <button class="btn btn-primary" onclick="handleInput()">执行</button>
+      <button class="btn btn-secondary" onclick="toggleVoice()">🎤 语音</button>
+    </div>
+
+    <!-- Waveform -->
+    <div class="waveform" id="waveform"></div>
+
+    <!-- Module Cards -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <h3 class="card-title">意图解析</h3>
+        <p class="card-desc">LLM 语义理解与槽位填充</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <h3 class="card-title">知识检索</h3>
+        <p class="card-desc">向量数据库与知识图谱</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3 class="card-title">推理决策</h3>
+        <p class="card-desc">Chain-of-Thought 推理链</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛠️</div>
+        <h3 class="card-title">工具调用</h3>
+        <p class="card-desc">API 编排与 Agent 调度</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3 class="card-title">数据分析</h3>
+        <p class="card-desc">实时统计与可视化</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3 class="card-title">安全审计</h3>
+        <p class="card-desc">异常检测与风险预警</p>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <h3 class="panel-title" style="margin-bottom:12px;">▸ 活动日志</h3>
+    <div class="log-container" id="logContainer">
+      <div class="log-entry">
+        <span class="log-time">12:00:00</span>
+        <span class="log-type info">INFO</span>
+        <span class="log-msg">系统初始化完成，等待用户指令</span>
+      </div>
+    </div>
+  </section>
+
+<script>
+  // Generate waveform bars
+  const waveform = document.getElementById('waveform');
+  for (let i = 0; i < 60; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    bar.style.animationDelay = `${i * 0.05}s`;
+    bar.style.height = `${Math.random() * 30 + 10}px`;
+    waveform.appendChild(bar);
+  }
+
+  // Handle input
+  function handleInput() {
+    const input = document.getElementById('userInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    addLog('user', msg, 'info');
+    input.value = '';
+
+    // Simulate Jarvis response
+    setTimeout(() => {
+      const responses = [
+        '已收到您的指令，正在处理...',
+        '分析完成，结果已生成。',
+        '正在调用相关工具执行任务。',
+        '数据检索完毕，共有 42 条匹配结果。'
+      ];
+      const resp = responses[Math.floor(Math.random() * responses.length)];
+      addLog('jarvis', resp, 'success');
+    }, 800);
+  }
+
+  // Add log entry
+  function addLog(type, msg, level) {
+    const container = document.getElementById('logContainer');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+
+    const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    const label = type === 'user' ? 'USER' : 'JARVIS';
+
+    entry.innerHTML = `
+      <span class="log-time">${time}</span>
+      <span class="log-type ${level}">${label}</span>
+      <span class="log-msg">${msg}</span>
+    `;
+
+    container.insertBefore(entry, container.firstChild);
+
+    // Keep max 50 entries
+    while (container.children.length > 50) {
+      container.removeChild(container.lastChild);
+    }
+  }
+
+  // Toggle voice (simulated)
+  function toggleVoice() {
+    addLog('system', '语音输入模式已启用', 'warning');
+  }
+
+  // Enter key support
+  document.getElementById('userInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleInput();
+  });
+</script>
+</body>
+</html>
