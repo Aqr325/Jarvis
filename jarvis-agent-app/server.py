@@ -113,6 +113,13 @@ async def lifespan(app: FastAPI):
 
     agent = JarvisAgent("JARVIS")
 
+    # Initialize modules BEFORE registering tools
+    weather = WeatherModule()
+    data_analysis = DataAnalysisModule()
+    scheduler = SchedulerModule()
+    file_ops = FileModule()
+    report_gen = ReportModule()
+
     # Register built-in modules as tools
     agent.execution.register_tool(
         "weather", lambda city: asyncio.create_task(weather.get_weather(city))
@@ -171,13 +178,6 @@ async def lifespan(app: FastAPI):
     agent.execution.register_tool(
         "agent_chat", lambda msg: asyncio.create_task(agent.process(msg))
     )
-
-    global weather, data_analysis, scheduler, file_ops, report_gen
-    weather = WeatherModule()
-    data_analysis = DataAnalysisModule()
-    scheduler = SchedulerModule()
-    file_ops = FileModule()
-    report_gen = ReportModule()
 
     logger.info("J.A.R.V.I.S. Agent initialized with middleware support")
 

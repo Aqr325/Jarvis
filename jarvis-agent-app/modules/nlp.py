@@ -203,7 +203,7 @@ class NLPProcessor:
         """Generate a response based on recognized intent and entities."""
 
         responses = {
-            "weather": f"检测到天气查询意图，置信度 {intent_confidence:.2f}。正在为您查询【{entities.get('city', '未知城市')}】的天气信息...",
+            "weather": f"检测到天气查询意图，置信度 {confidence:.2f}。正在为您查询【{entities.get('city', '未知城市')}】的天气信息...",
             "task_create": "好的，我来帮您创建一个任务。请告诉我任务的标题和截止日期。",
             "task_list": "让我来查看一下您的任务列表...",
             "data_analysis": "数据分析模块已就绪，请输入需要分析的数据集名称。",

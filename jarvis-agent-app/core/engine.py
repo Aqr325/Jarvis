@@ -292,7 +292,7 @@ class ReasoningEngine:
     """
 
     def __init__(self, llm_api_fn: Optional[Callable] = None):
-        self.llm_fn = llm_fn
+        self.llm_fn = llm_api_fn
         self.rules: List[dict] = []
         self.knowledge_graph: Dict[str, List[str]] = {}
         self._nlp_processor = None
@@ -504,7 +504,7 @@ class ReasoningEngine:
                 result = await self._multi_step_reasoning(query, context, memory)
 
             elif strategy == DecisionStrategy.RULE_BASED:
-                result = await self._rule_based_reason(query, context, memory)
+                result = await self._rule_based_reasoning(query, context, memory)
 
             else:
                 result = await self._fallback_reason(query, context, memory)
@@ -523,7 +523,7 @@ class ReasoningEngine:
 
         return result
 
-    async def _rule_based_reason(
+    async def _rule_based_reasoning(
         self, query: str, context: Dict, memory: List[dict]
     ) -> dict:
         for rule in self.rules:
