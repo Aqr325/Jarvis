@@ -24,6 +24,7 @@ INTENTS = {
     "task_create": [
         "创建任务", "新建任务", "添加任务", "设置任务",
         "create task", "new task", "add task", "set task",
+        "create", "task", "todo",
     ],
     "task_list": [
         "任务列表", "我的任务", "待办", "todo", "list task",
@@ -31,7 +32,8 @@ INTENTS = {
     ],
     "data_analysis": [
         "数据分析", "分析数据", "统计", "calculate", "statistics",
-        "帮我分析", "数据报告", "generate data",
+        "帮我分析", "数据报告", "generate data", "generate 50 data",
+        "analyze", "data analysis", "analyze test",
     ],
     "reminder": [
         "提醒我", "提醒", "闹钟", "set reminder", "remind me",
@@ -40,6 +42,10 @@ INTENTS = {
     "file_operation": [
         "创建文件", "写入文件", "读取文件", "read file", "write file",
         "list directory", "查看文件", "创建文档",
+    ],
+    "list_tools": [
+        "列出工具", "有什么工具", "可用的工具", "list tools", "可用工具",
+        "有哪些工具", "工具列表", "show tools",
     ],
     "report": [
         "生成报告", "做报告", "报告", "generate report", "report",
@@ -58,6 +64,30 @@ INTENTS = {
     "bye": [
         "再见", "拜拜", "goodbye", "bye", "下次见",
     ],
+    "crypto": [
+        "加密货币", "比特币", "以太坊", "狗狗币", "币价", "crypto", "bitcoin",
+        "ethereum", "dogecoin", "solana", "cardano", "区块链", "数字货币",
+        "比特币价格", "以太坊价格", "coin price", "cryptocurrency",
+    ],
+    "exchange": [
+        "汇率", "货币兑换", "换算", "exchange rate", "currency",
+        "美元兑人民币", "欧元兑美元", "换汇", "汇率查询",
+        "多少人民币", "换算成", "exchange", "to cny", "to usd", "to eur",
+        "convert", "currency convert",
+    ],
+    "dictionary": [
+        "查单词", "单词", "词典", "dictionary", "definition", "什么意思",
+        "word", "define", "词汇", "单词意思", "词汇查询", "查",
+    ],
+    "holiday": [
+        "节假日", "放假", "假期", "公共假期", "holiday", "放假安排",
+        "法定假日", "春节", "国庆", "端午", "中秋", "holidays",
+        "public holiday", "法定节假日", "放假日",
+    ],
+    "book": [
+        "查书", "书籍", "小说", "book", "search book", "找书", "图书",
+        "推荐书", "书名", "作者", "search", "books", "阅读",
+    ],
 }
 
 # Entity patterns
@@ -65,8 +95,13 @@ ENTITY_PATTERNS = {
     "city": re.compile(r"(北京|上海|广州|深圳|成都|杭州|武汉|南京|重庆|西安|长沙|郑州|青岛|大连|厦门|沈阳|哈尔滨|济南|合肥|福州|昆明|贵阳|南宁|兰州|乌鲁木齐|海口|呼和浩特|拉萨|天津|香港|澳门|台北)(市)?"),
     "date": re.compile(r"(\d{4}[-/]\d{1,2}[-/]\d{1,2}|明天|后天|大后天|今天|昨天|\d{1,2}月\d{1,2}日)"),
     "priority": re.compile(r"(high|medium|low|高|中|低|紧急|普通|低优先级)"),
-    "number": re.compile(r"\d+"),
+    "number": re.compile(r"(\d+)"),
     "file_path": re.compile(r"([a-zA-Z]:[/\\]|\/)[\w\-./\\]+"),
+    "coin": re.compile(r"(bitcoin|ethereum|solana|dogecoin|cardano|ripple|xrp|polkadot|avalanche|polygon|litecoin|chainlink|比特币|以太坊|狗狗币)"),
+    "currency": re.compile(r"\b(USD|CNY|EUR|GBP|JPY|KRW|HKD|AUD|CAD|CHF|SGD|NZD|THB|VND|MYR|IDR|PHP|INR|RUB|BRL|MXN)\b", re.IGNORECASE),
+    "word": re.compile(r"(?:查|define|definition|look up|查一下)\s*([a-zA-Z]\w+)"),
+    "country": re.compile(r"\b(CN|US|JP|GB|KR|HK|DE|FR|IT|ES|CA|AU|BR|IN|RU|SG|TH|MY|VN|PH|ID)\b"),
+    "category": re.compile(r"(Programming|Misc|Dark|Pun|Spooky|Christmas|Any)"),
 }
 
 # Sentiment keywords (Chinese & English)
@@ -214,7 +249,12 @@ class NLPProcessor:
             "joke": self.jokes[hash(entities.get("city", "default")) % len(self.jokes)],
             "self_intro": "你好！我是 J.A.R.V.I.S. — Just A Rather Very Intelligent System。我是一个多功能智能Agent系统，可以帮助你处理天气查询、任务管理、数据分析、文件操作等多种任务。有什么可以帮你的吗？",
             "bye": "很高兴为你服务！随时回来找我聊天或工作。再见！",
-            "unknown": f"抱歉，我不太理解你的意思。你可以试试问我天气、帮我创建任务、或分析数据。",
+            "crypto": f"检测到加密货币查询意图，置信度 {confidence:.2f}。正在为您查询 {entities.get('coin', '热门币种')} 的实时价格...",
+            "exchange": f"检测到汇率查询意图，置信度 {confidence:.2f}。正在为您查询实时汇率...",
+            "dictionary": f"好的，正在查询单词信息...",
+            "holiday": f"正在查询公共节假日信息...",
+            "book": f"正在搜索书籍信息...",
+            "unknown": f"抱歉，我不太理解你的意思。你可以试试问我天气、查加密货币价格、查询汇率、查字典、查询节假日、搜索书籍、创建任务、或分析数据。",
         }
 
         response_text = responses.get(intent, responses["unknown"])

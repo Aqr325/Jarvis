@@ -43,6 +43,20 @@ from modules.builtins import (
     WeatherModule,
 )
 from modules.nlp import nlp_processor
+from modules.public_apis import (
+    crypto_price,
+    crypto_list,
+    exchange_rate,
+    exchange_supported_currencies,
+    dictionary_lookup,
+    public_holidays,
+    next_public_holidays,
+    country_list as holiday_country_list,
+    tell_joke,
+    search_books,
+    book_by_isbn,
+    close_session as close_public_apis,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("jarvis.api")
@@ -175,12 +189,27 @@ async def lifespan(app: FastAPI):
         "agent_chat", lambda msg: agent.process(msg)
     )
 
+    # Register public API tools (zero-config, no API keys needed)
+    agent.execution.register_tool("crypto_price", lambda coin_id="bitcoin", vs_currency="usd": crypto_price(coin_id, vs_currency))
+    agent.execution.register_tool("crypto_list", lambda: crypto_list())
+    agent.execution.register_tool("exchange_rate", lambda from_currency, to_currency, amount=1.0: exchange_rate(from_currency, to_currency, amount))
+    agent.execution.register_tool("exchange_currencies", lambda: exchange_supported_currencies())
+    agent.execution.register_tool("dictionary_lookup", lambda word: dictionary_lookup(word))
+    agent.execution.register_tool("public_holidays", lambda year, country_code="CN": public_holidays(year, country_code))
+    agent.execution.register_tool("next_holidays", lambda country_code="CN": next_public_holidays(country_code))
+    agent.execution.register_tool("holiday_countries", lambda: holiday_country_list())
+    agent.execution.register_tool("tell_joke", lambda category="Any", lang="en": tell_joke(category, lang))
+    agent.execution.register_tool("search_books", lambda query, limit=5: search_books(query, limit))
+    agent.execution.register_tool("book_by_isbn", lambda isbn: book_by_isbn(isbn))
+
     logger.info("J.A.R.V.I.S. Agent initialized with middleware support")
 
     # Background task: periodic cleanup of stale rate-limit buckets
     cleanup_task = asyncio.create_task(_periodic_cleanup())
     yield
     cleanup_task.cancel()
+    # Close shared aiohttp session for public APIs
+    await close_public_apis()
 
 
 async def _periodic_cleanup():
@@ -413,6 +442,130 @@ async def get_weather_endpoint(city: str, request: Request):
     handler = weather.get_weather(city)
     result = await _enforce_timeout(handler, category, client_id)
     return result
+
+
+# ===================================================================
+# Public API endpoints (zero-config, no API key needed)
+# ===================================================================
+class CryptoRequest(BaseModel):
+    coin_id: str = "bitcoin"
+    vs_currency: str = "usd"
+
+
+class ExchangeRequest(BaseModel):
+    from_currency: str
+    to_currency: str
+    amount: float = 1.0
+
+
+class DictionaryRequest(BaseModel):
+    word: str
+
+
+class HolidayRequest(BaseModel):
+    year: int = 2026
+    country_code: str = "CN"
+
+
+class JokeRequest(BaseModel):
+    category: str = "Any"
+    lang: str = "en"
+
+
+class BookSearchRequest(BaseModel):
+    query: str
+    limit: int = 5
+
+
+class BookISBNRequest(BaseModel):
+    isbn: str
+
+
+@app.post("/api/public/crypto")
+async def public_crypto_price(req: CryptoRequest, request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await crypto_price(req.coin_id, req.vs_currency)
+    return result
+
+
+@app.get("/api/public/crypto/list")
+async def public_crypto_list(request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await crypto_list()
+    return result
+
+
+@app.post("/api/public/exchange")
+async def public_exchange_rate(req: ExchangeRequest, request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await exchange_rate(req.from_currency, req.to_currency, req.amount)
+    return result
+
+
+@app.get("/api/public/exchange/currencies")
+async def public_exchange_currencies(request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await exchange_supported_currencies()
+    return result
+
+
+@app.post("/api/public/dictionary")
+async def public_dictionary(req: DictionaryRequest, request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await dictionary_lookup(req.word)
+    return result
+
+
+@app.post("/api/public/holidays")
+async def public_holidays_endpoint(req: HolidayRequest, request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await public_holidays(req.year, req.country_code)
+    return result
+
+
+@app.get("/api/public/holidays/next")
+async def public_next_holidays(country_code: str = "CN", request: Request = None):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await next_public_holidays(country_code)
+    return result
+
+
+@app.post("/api/public/joke")
+async def public_joke(req: JokeRequest, request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await tell_joke(req.category, req.lang)
+    return result
+
+
+@app.post("/api/public/books/search")
+async def public_search_books(req: BookSearchRequest, request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await search_books(req.query, req.limit)
+    return result
+
+
+@app.post("/api/public/books/isbn")
+async def public_book_isbn(req: BookISBNRequest, request: Request):
+    client_id = extract_client_id(request)
+    await _check_rate_limit(client_id, "general")
+    result = await book_by_isbn(req.isbn)
+    return result
+
+
+@app.get("/api/public/capabilities")
+async def public_api_capabilities():
+    """List all available public APIs and their call signatures."""
+    from modules.public_apis import PUBLIC_API_DESCRIPTIONS
+    return {"apis": PUBLIC_API_DESCRIPTIONS, "count": len(PUBLIC_API_DESCRIPTIONS)}
 
 
 # ===================================================================
